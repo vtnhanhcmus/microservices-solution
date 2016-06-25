@@ -1,0 +1,18 @@
+---
+docker_api_version: "1.19"
+consul_image_name: "progrium/consul"
+consul_server_hostname: "consul-server"
+consul_slave_hostname: "consul-client"
+docker_workplace: "/consul"
+
+registrator_container_name: "registrator"
+registrator_image_name: "gliderlabs/registrator"
+registrator_hostname: "registrator"
+
+consul:
+      dns1: "172.17.0.1"
+      container_name: "consul"
+
+ansible_host: localhost
+is_consul_master: true
+ansible_host_private_ip: localhost

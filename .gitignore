@@ -1,0 +1,12 @@
+# IDE
+.idea
+.project
+.settings
+.buildpath
+.metadata
+*.komodoproject
+*.sublime-project
+*.sublime-workspace
+
+# Ansible
+*.retry

@@ -1,0 +1,72 @@
+- name: run consul container master from progrium/consul image
+  docker:
+    detach: true
+    dns: ["{{consul.dns1}}"]
+    docker_api_version: "{{ docker_api_version }}"
+    name: "{{ consul.container_name }}"
+    image: "{{ consul_image_name }}"
+    state: reloaded
+    docker_user: root
+    privileged: yes
+    hostname: "{{ consul_server_hostname }}"
+    ports:
+      - "{{ ansible_host_private_ip }}:8300:8300"
+      - "{{ ansible_host_private_ip }}:8301:8301"
+      - "{{ ansible_host_private_ip }}:8301:8301/udp"
+      - "{{ ansible_host_private_ip }}:8302:8302"
+      - "{{ ansible_host_private_ip }}:8302:8302/udp"
+      - "{{ ansible_host_private_ip }}:8400:8400"
+      - "{{ ansible_host_private_ip }}:8500:8500"
+      - "{{ consul.dns1 }}:53:53/udp"
+    command: -server -bootstrap -advertise {{ ansible_host_private_ip }}
+    volumes:
+      - "/data:/data"
+      - "{{docker_workplace}}:/opt"
+  when: is_consul_master
+
+
+- name: run consul container slave from progrium/consul image
+  docker:
+    detach: true
+    dns: ["{{consul.dns1}}"]
+    docker_api_version: "{{ docker_api_version }}"
+    name: "{{ consul.container_name }}"
+    image: "{{ consul_image_name }}"
+    state: reloaded
+    docker_user: root
+    privileged: yes
+    hostname: "{{ consul_slave_hostname }}-{{ ansible_host_private_ip }}"
+    ports:
+      - "{{ ansible_host_private_ip }}:8300:8300"
+      - "{{ ansible_host_private_ip }}:8301:8301"
+      - "{{ ansible_host_private_ip }}:8301:8301/udp"
+      - "{{ ansible_host_private_ip }}:8302:8302"
+      - "{{ ansible_host_private_ip }}:8302:8302/udp"
+      - "{{ ansible_host_private_ip }}:8400:8400"
+      - "{{ ansible_host_private_ip }}:8500:8500"
+      - "{{ consul.dns1 }}:53:53/udp"
+    command: -server -advertise {{ ansible_host_private_ip }} -join {{ service_discovery_master_ip }}
+    volumes:
+      - "/data:/data"
+      - "{{docker_workplace}}:/opt"
+  when: not is_consul_master
+
+
+- name: run registrator container from gliderlabs/registrator image
+  docker:
+    detach: true
+    docker_api_version: "{{ docker_api_version }}"
+    name: "{{ registrator_container_name }}"
+    image: "{{ registrator_image_name }}"
+    state: reloaded
+    docker_user: root
+    privileged: yes
+    hostname: "{{ registrator_hostname }}"
+    command: "consul://{{ consul.container_name }}:8500"
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock"
+    links:
+      - "{{ consul.container_name }}:{{ consul.container_name }}"
+
+- name: config dns
+  command: echo "DOCKER_OPTS='--dns {{ consul.dns1 }} --dns 8.8.8.8 --dns-search service.consul'" >> /etc/default/docker
