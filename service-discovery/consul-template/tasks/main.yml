@@ -1,0 +1,3 @@
+---
+- include: build-image.yml
+- include: create-container.yml

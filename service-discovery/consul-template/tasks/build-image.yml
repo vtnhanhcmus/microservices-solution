@@ -1,0 +1,32 @@
+- name: Create workplace
+  file:
+    name: "{{ workplace }}"
+    state: directory
+
+
+- name: Copy workplace files
+  remote_user: root
+  synchronize:
+    src: "files/"
+    dest: "{{ workplace }}"
+    recursive: yes
+
+- name: Copy Dockerfile
+  template:
+    src: "files/Dockerfile"
+    dest: "{{ workplace }}"
+
+- name: Copy template files to target
+  remote_user: root
+  synchronize:
+    src: "templates/test/"
+    dest: "{{ workplace }}/templates"
+    recursive: yes
+
+
+- name: Build web server image
+  docker_image:
+    docker_api_version: "{{ docker_api_version }}"
+    name: "{{ docker_image_name }}"
+    path: "{{ workplace }}"
+    state: present

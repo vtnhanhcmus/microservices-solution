@@ -1,0 +1,8 @@
+---
+workplace: '{{ docker_workplace }}/{{ docker_image_name }}'
+docker_image_name: 'proxy'
+docker_container_name: 'proxy'
+consul:
+      dns1: "172.17.0.1"
+      container_name: "consul"
+docker_workplace: "/consul-template"

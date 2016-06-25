@@ -1,0 +1,20 @@
+# remove node from service discovery
+
+- name: Create docker container from docker image {{ docker_image_name }}
+  docker:
+    detach: true
+    docker_api_version: "{{ docker_api_version }}"
+    name: "{{ docker_container_name }}"
+    image: "{{ docker_image_name }}"
+    state: reloaded
+    docker_user: root
+    privileged: yes
+    links:
+      - "{{ consul.container_name }}:{{ consul.container_name }}"
+    dns: ["{{consul.dns1}}"]
+    ports:
+      - "80:80"
+    volumes:
+      - "{{ workplace }}/templates:/templates:rw"
+      - "{{ workplace }}/nginx.conf:/etc/nginx/nginx.conf:rw"
+      - "{{ workplace }}/proxy.inc:/etc/nginx/proxy.inc:rw"
